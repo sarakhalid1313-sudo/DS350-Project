@@ -1,0 +1,168 @@
+SQL File 
+
+1- Creating the DB: 
+
+CREATE DATABASE SmartClinicDB;
+USE SmartClinicDB;
+
+
+2- Table Creation: 
+
+-- Superclass: PERSON
+CREATE TABLE PERSON (
+    PersonID INT PRIMARY KEY,
+    Fname VARCHAR(50) NOT NULL,
+    Mname VARCHAR(50),
+    Lname VARCHAR(50) NOT NULL,
+    Gender CHAR(1) CHECK (Gender IN ('M', 'F'))
+);
+
+-- Multivalued Attribute: Phone
+CREATE TABLE PERSON_PHONE (
+    PersonID INT,
+    Phone VARCHAR(15),
+    PRIMARY KEY (PersonID, Phone),
+    FOREIGN KEY (PersonID) REFERENCES PERSON(PersonID) ON DELETE CASCADE
+);
+
+-- Subclass: PATIENTS
+CREATE TABLE PATIENTS (
+    FileID INT PRIMARY KEY,
+    PersonID INT UNIQUE,
+    Insurance VARCHAR(100),
+    FOREIGN KEY (PersonID) REFERENCES PERSON(PersonID) ON DELETE CASCADE
+);
+
+-- Subclass: DOCTORS
+CREATE TABLE DOCTORS (
+    DoctorID INT PRIMARY KEY,
+    PersonID INT UNIQUE,
+    Specialization VARCHAR(100) NOT NULL,
+    FOREIGN KEY (PersonID) REFERENCES PERSON(PersonID) ON DELETE CASCADE
+);
+
+-- Entity: APPOINTMENTS (Maps 1:M ATTENDS and HAS relationships)
+CREATE TABLE APPOINTMENTS (
+    ApptID INT PRIMARY KEY,
+    Appt_Date DATE NOT NULL,
+    Appt_Time TIME NOT NULL,
+    FileID INT NOT NULL,
+    DoctorID INT NOT NULL,
+    FOREIGN KEY (FileID) REFERENCES PATIENTS(FileID) ON DELETE CASCADE,
+    FOREIGN KEY (DoctorID) REFERENCES DOCTORS(DoctorID) ON DELETE CASCADE
+);
+
+-- Entity: PAYMENTS (Maps 1:M MAKES relationship)
+CREATE TABLE PAYMENTS (
+    PayID INT PRIMARY KEY,
+    Total DECIMAL(10, 2) NOT NULL,
+    Pay_Date DATE NOT NULL,
+    FileID INT NOT NULL,
+    FOREIGN KEY (FileID) REFERENCES PATIENTS(FileID) ON DELETE CASCADE
+);
+
+-- Entity: TREATMENTS (Maps 1:M PROVIDES relationship)
+CREATE TABLE TREATMENTS (
+    TreatID INT PRIMARY KEY,
+    Treat_Name VARCHAR(100) NOT NULL,
+    Start_date DATE NOT NULL,
+    End_date DATE,
+    ApptID INT NOT NULL,
+    FOREIGN KEY (ApptID) REFERENCES APPOINTMENTS(ApptID) ON DELETE CASCADE
+);
+
+-- Entity: MEDICINES
+CREATE TABLE MEDICINES (
+    MedicineID INT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL UNIQUE,
+    Cost DECIMAL(10, 2) NOT NULL
+);
+
+-- Many-to-Many Relationship: OFFERS (Treatments & Medicines)
+CREATE TABLE OFFERS (
+    TreatID INT,
+    MedicineID INT,
+    Quantity INT NOT NULL CHECK (Quantity > 0),
+    PRIMARY KEY (TreatID, MedicineID),
+    FOREIGN KEY (TreatID) REFERENCES TREATMENTS(TreatID) ON DELETE CASCADE,
+    FOREIGN KEY (MedicineID) REFERENCES MEDICINES(MedicineID) ON DELETE CASCADE
+);
+
+
+
+
+3- Inserting Data: 
+
+-- Insert 10 Persons (5 for Patients, 5 for Doctors)
+INSERT INTO PERSON (PersonID, Fname, Mname, Lname, Gender) VALUES
+(101, 'Ahmed', 'Ali', 'Al-Faisal', 'M'),
+(102, 'Noura', 'Saad', 'Al-Qahtani', 'F'),
+(103, 'Omar', 'Zaid', 'Al-Otaibi', 'M'),
+(104, 'Fatima', 'Khalid', 'Al-Dosari', 'F'),
+(105, 'Yousef', 'Fahad', 'Al-Harbi', 'M'),
+(201, 'Tariq', 'Mohammed', 'Al-Shehri', 'M'),
+(202, 'Sara', 'Abdullah', 'Al-Nasser', 'F'),
+(203, 'Maha', 'Saleh', 'Al-Ghamdi', 'F'),
+(204, 'Khalid', 'Ibrahim', 'Al-Mutairi', 'M'),
+(205, 'Reem', 'Sami', 'Al-Zahrani', 'F');
+
+-- Insert Phones
+INSERT INTO PERSON_PHONE (PersonID, Phone) VALUES
+(101, '0501111111'), (102, '0502222222'), (103, '0503333333'),
+(201, '0506666666'), (202, '0507777777');
+
+-- Insert 5 Patients
+INSERT INTO PATIENTS (FileID, PersonID, Insurance) VALUES
+(1, 101, 'Tawuniya'),
+(2, 102, 'Bupa'),
+(3, 103, 'Medgulf'),
+(4, 104, 'Tawuniya'),
+(5, 105, 'Malath');
+
+-- Insert 5 Doctors
+INSERT INTO DOCTORS (DoctorID, PersonID, Specialization) VALUES
+(10, 201, 'Cardiology'),
+(20, 202, 'Dermatology'),
+(30, 203, 'Pediatrics'),
+(40, 204, 'General Practice'),
+(50, 205, 'Orthopedics');
+
+-- Insert 5 Appointments
+INSERT INTO APPOINTMENTS (ApptID, Appt_Date, Appt_Time, FileID, DoctorID) VALUES
+(1001, '2026-08-01', '09:00:00', 1, 10),
+(1002, '2026-08-01', '10:30:00', 2, 20),
+(1003, '2026-08-02', '14:00:00', 3, 30),
+(1004, '2026-08-03', '11:15:00', 4, 40),
+(1005, '2026-08-04', '16:45:00', 5, 50);
+
+-- Insert 5 Payments
+INSERT INTO PAYMENTS (PayID, Total, Pay_Date, FileID) VALUES
+(501, 150.00, '2026-08-01', 1),
+(502, 300.50, '2026-08-01', 2),
+(503, 100.00, '2026-08-02', 3),
+(504, 50.00, '2026-08-03', 4),
+(505, 450.75, '2026-08-04', 5);
+
+-- Insert 5 Treatments
+INSERT INTO TREATMENTS (TreatID, Treat_Name, Start_date, End_date, ApptID) VALUES
+(701, 'ECG Monitoring', '2026-08-01', '2026-08-01', 1001),
+(702, 'Laser Therapy', '2026-08-01', '2026-08-15', 1002),
+(703, 'Vaccination', '2026-08-02', '2026-08-02', 1003),
+(704, 'Routine Checkup', '2026-08-03', '2026-08-03', 1004),
+(705, 'Physiotherapy', '2026-08-04', '2026-09-04', 1005);
+
+-- Insert 5 Medicines
+INSERT INTO MEDICINES (MedicineID, Name, Cost) VALUES
+(901, 'Aspirin', 15.50),
+(902, 'Isotretinoin', 120.00),
+(903, 'Paracetamol', 10.00),
+(904, 'Amoxicillin', 45.25),
+(905, 'Ibuprofen', 20.00);
+
+-- Insert 5 Offers (Linking Treatments and Medicines with Quantity)
+INSERT INTO OFFERS (TreatID, MedicineID, Quantity) VALUES
+(701, 901, 1),
+(702, 902, 2),
+(703, 903, 1),
+(704, 904, 1),
+(705, 905, 3);

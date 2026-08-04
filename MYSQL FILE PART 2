@@ -1,0 +1,142 @@
+-- 1) SELECT STATEMENTS
+
+SELECT Name, Cost
+FROM MEDICINES
+WHERE Cost > 20;
+
+
+SELECT Fname, Mname, Lname, Gender
+FROM PERSON
+WHERE Gender = 'F';
+
+
+
+-- 2) JOIN QUERIES
+
+SELECT
+    pat_person.Fname AS Patient_First,
+    pat_person.Lname AS Patient_Last,
+    a.Appt_Date,
+    a.Appt_Time,
+    doc_person.Fname AS Doctor_First,
+    doc_person.Lname AS Doctor_Last,
+    d.Specialization
+FROM APPOINTMENTS a
+JOIN PATIENTS pt        ON a.FileID = pt.FileID
+JOIN PERSON pat_person   ON pt.PersonID = pat_person.PersonID
+JOIN DOCTORS d          ON a.DoctorID = d.DoctorID
+JOIN PERSON doc_person   ON d.PersonID = doc_person.PersonID;
+
+SELECT
+    t.Treat_Name,
+    m.Name AS Medicine_Name,
+    o.Quantity
+FROM TREATMENTS t
+JOIN OFFERS o     ON t.TreatID = o.TreatID
+JOIN MEDICINES m  ON o.MedicineID = m.MedicineID;
+
+
+
+-- 3) NESTED QUERIES
+
+SELECT Fname, Lname
+FROM PERSON
+WHERE PersonID IN (
+    SELECT PersonID
+    FROM PATIENTS
+    WHERE FileID IN (
+        SELECT FileID
+        FROM PAYMENTS
+        WHERE Total > 100
+    )
+);
+
+
+SELECT Treat_Name
+FROM TREATMENTS
+WHERE TreatID IN (
+    SELECT TreatID
+    FROM OFFERS
+    WHERE MedicineID = (
+        SELECT MedicineID
+        FROM MEDICINES
+        WHERE Name = 'Aspirin'
+    )
+);
+
+
+-- 4) AGGREGATE FUNCTIONS WITH GROUP BY
+
+
+
+FROM APPOINTMENTS
+GROUP BY DoctorID;
+
+
+FROM PAYMENTS
+GROUP BY FileID;
+
+
+
+-- 5) UPDATE AND DELETE STATEMENTS
+
+
+UPDATE MEDICINES
+SET Cost = Cost * 1.10
+WHERE MedicineID = 901;
+
+
+SELECT * FROM MEDICINES WHERE MedicineID = 901;
+
+
+DELETE FROM PERSON_PHONE
+WHERE PersonID = 103 AND Phone = '0503333333';
+
+SELECT * FROM PERSON_PHONE WHERE PersonID = 103;
+
+
+-- 6) VIEW
+
+
+
+CREATE VIEW PatientAppointmentView AS
+SELECT
+    p.Fname AS Patient_First,
+    p.Lname AS Patient_Last,
+    a.Appt_Date,
+    a.Appt_Time,
+    d.Specialization
+FROM APPOINTMENTS a
+JOIN PATIENTS pt ON a.FileID = pt.FileID
+JOIN PERSON p    ON pt.PersonID = p.PersonID
+JOIN DOCTORS d   ON a.DoctorID = d.DoctorID;
+
+
+SELECT * FROM PatientAppointmentView;
+
+
+
+-- 7) TRIGGER
+
+
+CREATE TABLE APPOINTMENT_LOG (
+    LogID INT AUTO_INCREMENT PRIMARY KEY,
+    ApptID INT,
+    Action_Type VARCHAR(50),
+    Action_Date DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TRIGGER trg_after_appointment_insert
+AFTER INSERT ON APPOINTMENTS
+FOR EACH ROW
+BEGIN
+    INSERT INTO APPOINTMENT_LOG (ApptID, Action_Type)
+    VALUES (NEW.ApptID, 'New appointment scheduled');
+END;
+
+
+INSERT INTO APPOINTMENTS (ApptID, Appt_Date, Appt_Time, FileID, DoctorID)
+VALUES (1006, '2026-08-05', '13:00:00', 1, 20);
+
+SELECT * FROM APPOINTMENT_LOG;

@@ -80,3 +80,7 @@ The project report was collaboratively prepared using **Google Docs**, while **G
 ## Project Outcome
 
 The Smart Clinic Database System successfully demonstrates the application of database design principles through ER/EER modeling, relational database implementation, SQL programming, and advanced database features such as Views and Triggers. The final system provides an organized and efficient solution for managing clinic information while satisfying the project requirements.
+
+## Project Report
+
+[Final Project Report - Google Docs](https://docs.google.com/document/d/1I5aAc5JQpJPdJP3cUMos1-HAlFLG1C10yQweUhqtWw4/edit?usp=sharing)
